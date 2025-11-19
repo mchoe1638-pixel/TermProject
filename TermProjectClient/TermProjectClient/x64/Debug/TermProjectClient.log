@@ -1,0 +1,6 @@
+﻿  client.c
+C:\Users\chlau\Desktop\TK\TK3-2\네트워크게임프로그래밍\TermProject\TermProjectClient\TermProjectClient\client.c(106,6): error C2371: 'DrawStateW': 재정의. 기본 형식이 다릅니다.
+      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\winuser.h(8417,1):
+      'DrawStateW' 선언을 참조하십시오.
+  
+C:\Users\chlau\Desktop\TK\TK3-2\네트워크게임프로그래밍\TermProject\TermProjectClient\TermProjectClient\client.c(121,9): error C2198: 'BOOL DrawStateW(HDC,HBRUSH,DRAWSTATEPROC,LPARAM,WPARAM,int,int,int,int,UINT)': 호출에 인수가 너무 적습니다.
