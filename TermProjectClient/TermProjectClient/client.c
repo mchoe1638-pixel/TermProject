@@ -2,12 +2,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 
-// 그리드 좌상단 위치 & 셀 크기
-#define GRID_ORIGIN_X   50
-#define GRID_ORIGIN_Y   80
-#define CELL_WIDTH      80
-#define CELL_HEIGHT     80
-
 #include <winsock2.h>
 #include <windows.h>
 #include <windowsx.h> 
@@ -201,8 +195,8 @@ void RenderScene(HDC hdc, const GameState* st)
             const Plant* p = &st->plants[r][c];
             if (!p->alive) continue;
 
-            int centerX = GRID_ORIGIN_X + c * CELL_WIDTH + CELL_WIDTH / 2;
-            int centerY = GRID_ORIGIN_Y + r * CELL_HEIGHT + CELL_HEIGHT / 2;
+            int centerX = (int)COL_CENTER_X(c);
+            int centerY = (int)ROW_CENTER_Y(r);
             int half = 25;
 
             SetDCPenColor(hdc, RGB(0, 120, 0));
@@ -230,6 +224,28 @@ void RenderScene(HDC hdc, const GameState* st)
         SetDCBrushColor(hdc, RGB(255, 200 - (i * 15) % 150, 200));
 
         Rectangle(hdc, x - half, y - half, x + half, y + half);
+    }
+
+    // ----- Projectile 그리기 -----
+    for (int i = 0; i < st->projectileCount; ++i) {
+        const Projectile* p = &st->projectiles[i];
+        if (!p->alive) continue;
+
+        int x = (int)p->x;
+        int y = (int)p->y;
+
+        SetDCPenColor(hdc, RGB(255, 255, 0));
+        SetDCBrushColor(hdc, RGB(255, 255, 100));
+
+        Ellipse(hdc, x - 5, y - 5, x + 5, y + 5);
+    }
+
+    if (st->gameOver) {
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, RGB(255, 0, 0));
+
+        const wchar_t* msg = L"GAME OVER";
+        TextOutW(hdc, 200, 50, msg, lstrlenW(msg));
     }
 
     SelectObject(hdc, hOldPen);

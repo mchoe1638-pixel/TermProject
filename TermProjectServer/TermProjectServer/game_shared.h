@@ -8,6 +8,17 @@
 #define MAX_ROWS       5
 #define MAX_COLS       9
 
+// 그리드 좌상단 위치 & 셀 크기
+#define GRID_ORIGIN_X   50
+#define GRID_ORIGIN_Y   80
+#define CELL_WIDTH      80
+#define CELL_HEIGHT     80
+
+// 행/열 → 중앙 픽셀 좌표
+#define COL_CENTER_X(c) (GRID_ORIGIN_X + (c) * CELL_WIDTH  + CELL_WIDTH  / 2.0f)
+#define ROW_CENTER_Y(r) (GRID_ORIGIN_Y + (r) * CELL_HEIGHT + CELL_HEIGHT / 2.0f)
+
+#define MAX_PROJECTILES 128
 // 패킷 타입
 #define PKT_CL_PLACE_PLANT  1    // 클라 -> 서버 : plant 설치
 #define PKT_SV_GAME_STATE   2    // 서버 -> 클라 : 상태 전송
@@ -23,11 +34,12 @@ typedef struct Zombie {
 
 // ===================== Plant 구조 =====================
 typedef struct Plant {
-    int type;          // 나중에 plant 종류 확장 (0=없음, 1=기본 shooter)
-    int alive;         // 1=살아있음
-    int row, col;      // grid 좌표
-
-    float cooldown;    // 발사 쿨다운 타이머(초)
+    int type;      // 0=없음, 1=기본 공격 plant
+    int alive;     // 1=살아있음
+    int row;
+    int col;
+    float cooldown; // 발사 쿨다운(초)
+    int hp;         // plant 체력 (좀비가 씹어먹을 때 감소)
 } Plant;
 
 
@@ -45,6 +57,8 @@ typedef struct Projectile {
 typedef struct GameState {
     int timeSec;
     int energy;
+
+    int gameOver;   // 0=진행중, 1=패배
 
     Zombie zombies[MAX_ZOMBIES];
     int zombieCount;
@@ -92,3 +106,4 @@ extern "C" {
 // 2025/11/09/최명규/GameState 좀비 구조 추가
 // 2025/11/16/최명규/GameState 식물, 투사체 구조 추가, GameState 구조 확장
 // 2025/11/16/최명규/패킷 구조 정의
+// 2025/11/19/최명규/식물, GameState확장 엔티티 추가 업데이트
