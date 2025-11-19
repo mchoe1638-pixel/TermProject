@@ -12,7 +12,37 @@ void InitGameState(GameState* st)
 
     st->timeSec = 0;
     st->energy = 0;
-    st->zombieCount = 0;   // 시작할 때는 좀비 없음
+
+    st->zombieCount = 0;
+
+    // plant 전체 초기화
+    for (int r = 0; r < MAX_ROWS; ++r) {
+        for (int c = 0; c < MAX_COLS; ++c) {
+            Plant* p = &st->plants[r][c];
+            p->type = 0;
+            p->alive = 0;
+            p->row = r;
+            p->col = c;
+            p->cooldown = 0.0f;
+        }
+    }
+}
+
+// row, col 위치에 plant 한 개 설치
+void PlacePlant(GameState* st, int row, int col, int type)
+{
+    if (row < 0 || row >= MAX_ROWS) return;
+    if (col < 0 || col >= MAX_COLS) return;
+
+    Plant* p = &st->plants[row][col];
+
+    // 이미 있는 칸이면 덮어쓸지, 무시할지 옵션
+    // 지금은 그냥 덮어쓴다.
+    p->type = type;
+    p->alive = 1;
+    p->row = row;
+    p->col = col;
+    p->cooldown = 0.0f;  // 공격 쿨다운은 3단계에서 사용
 }
 
 // 한 마리 추가
@@ -46,6 +76,18 @@ static void UpdateZombies(GameState* st, float dt)
     }
 }
 
+static void UpdatePlants(GameState* st, float dt)
+{
+    for (int r = 0; r < MAX_ROWS; ++r) {
+        for (int c = 0; c < MAX_COLS; ++c) {
+            Plant* p = &st->plants[r][c];
+            if (!p->alive) continue;
+
+            // 3단계에서 여기서 쿨다운/공격 로직 넣을 예정
+        }
+    }
+}
+
 void UpdateGameState(GameState* st, float dt)
 {
     // 1) 서버 시간 증가 (초 단위)
@@ -65,5 +107,8 @@ void UpdateGameState(GameState* st, float dt)
     }
 
     // 3) 모든 좀비 이동
+    UpdatePlants(st, dt);
     UpdateZombies(st, dt);
 }
+
+// 2025/11/19/최명규/그리드 내 마우스 클릭시 식물 생성

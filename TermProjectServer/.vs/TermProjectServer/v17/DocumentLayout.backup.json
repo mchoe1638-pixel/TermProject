@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\server.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|solutionrelative:TermProjectServer\\server.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|solutionrelative:TermProjectServer\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_logic.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|solutionrelative:TermProjectServer\\game_logic.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|solutionrelative:TermProjectServer\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\server.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{7F7E882C-9E8C-4F1F-A724-3DF2A0C02D33}|TermProjectServer\\TermProjectServer.vcxproj|solutionrelative:TermProjectServer\\server.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -36,33 +36,33 @@
               "RelativeDocumentMoniker": "TermProjectServer\\game_logic.c",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_logic.c",
               "RelativeToolTip": "TermProjectServer\\game_logic.c",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAgwEQAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAYwFoAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
               "WhenOpened": "2025-11-19T10:59:47.735Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "game_shared.h",
               "DocumentMoniker": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_shared.h",
               "RelativeDocumentMoniker": "TermProjectServer\\game_shared.h",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_shared.h",
               "RelativeToolTip": "TermProjectServer\\game_shared.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAGAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-11-19T10:53:32.426Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "server.c",
               "DocumentMoniker": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\server.c",
               "RelativeDocumentMoniker": "TermProjectServer\\server.c",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\server.c",
               "RelativeToolTip": "TermProjectServer\\server.c",
-              "ViewState": "AgIAAFcAAAAAAAAAAAAAAGoAAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAYwLkAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
               "WhenOpened": "2025-11-19T10:37:36.295Z",
               "EditorCaption": ""

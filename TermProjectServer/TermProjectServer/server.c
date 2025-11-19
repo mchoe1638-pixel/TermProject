@@ -17,6 +17,63 @@ static int g_running = 1;
 
 unsigned __stdcall ClientThreadProc(void* arg);
 
+int PollClientInput(SOCKET s)
+{
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(s, &rfds);
+
+    TIMEVAL tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;   // 논블로킹
+
+    int r = select(0, &rfds, NULL, NULL, &tv);
+    if (r <= 0) {
+        // 읽을 데이터 없음
+        return 1;
+    }
+
+    if (!FD_ISSET(s, &rfds))
+        return 1;
+
+    // 헤더 먼저
+    PACKET_HEADER hdr;
+    int ret = recv(s, (char*)&hdr, sizeof(hdr), 0);
+    if (ret <= 0) {
+        // 0 = 정상 종료, <0 = 에러
+        return 0;
+    }
+    if (ret < (int)sizeof(hdr)) {
+        printf("recv header short\n");
+        return 0;
+    }
+
+    if (hdr.Type == PKT_CL_PLACE_PLANT) {
+        CL_PLACE_PLANT pkt;
+        pkt.header = hdr;
+
+        int toRecv = sizeof(CL_PLACE_PLANT) - sizeof(PACKET_HEADER);
+        char* p = ((char*)&pkt) + sizeof(PACKET_HEADER);
+        int recvd = 0;
+
+        while (recvd < toRecv) {
+            ret = recv(s, p + recvd, toRecv - recvd, 0);
+            if (ret <= 0) return 0;
+            recvd += ret;
+        }
+
+        printf("CL_PLACE_PLANT row=%d col=%d\n", pkt.row, pkt.col);
+        PlacePlant(&g_state, pkt.row, pkt.col, 1); // type=1 기본 plant
+
+    }
+    else {
+        // 모르는 패킷이면 버림
+        printf("Unknown packet type=%d\n", hdr.Type);
+    }
+
+    return 1;
+}
+
 void err_quit(const char* msg)
 {
     int err = WSAGetLastError();
@@ -59,12 +116,18 @@ unsigned __stdcall ClientThreadProc(void* arg)
         }
         lastTick = now;
 
-        // 게임 상태 업데이트 (지금은 timeSec만 증가)
+        // 클라이언트 입력 처리
+        if (!PollClientInput(cs)) {
+            printf("Client disconnected (input).\n");
+            break;
+        }
+
+        // 게임 상태 업데이트
         UpdateGameState(&g_state, dt);
 
         // 상태 전송
         if (!SendGameState(cs)) {
-            printf("Client disconnected.\n");
+            printf("Client disconnected (send).\n");
             break;
         }
     }
@@ -119,3 +182,5 @@ int main(void)
     WSACleanup();
     return 0;
 }
+
+// 2025/11/19/최명규/서버-입력 수신 처리 PollClientInput()
