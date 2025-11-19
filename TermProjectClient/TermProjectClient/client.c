@@ -103,24 +103,49 @@ unsigned __stdcall RecvThreadProc(void* arg)
     return 0;
 }
 
-void RenderState(HDC hdc)
+void RenderScene(HDC hdc, const GameState* st)
 {
-    // 1) 서버 timeSec 텍스트 찍기
+    // ----- 0. 클라 창 크기 -----
+    RECT rc;
+    GetClientRect(g_hWnd, &rc);
+
+    // 배경 흰색으로 깔기
+    HBRUSH hBG = CreateSolidBrush(RGB(255, 255, 255));
+    FillRect(hdc, &rc, hBG);
+    DeleteObject(hBG);
+
+    // ----- 1. 디버그 텍스트 -----
     wchar_t buf[128];
-    wsprintfW(buf, L"Server timeSec = %d", g_state.timeSec);
+    wsprintfW(
+        buf,
+        L"time=%d  zombies=%d",
+        st->timeSec,
+        st->zombieCount
+    );
     TextOutW(hdc, 10, 10, buf, lstrlenW(buf));
 
-    // 2) 좀비들 박스로 그리기
-    for (int i = 0; i < g_state.zombieCount; ++i) {
-        Zombie* z = &g_state.zombies[i];
+
+    // ----- 2. 좀비 전체 그리기 -----
+    HPEN   hOldPen = (HPEN)SelectObject(hdc, GetStockObject(DC_PEN));
+    HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(DC_BRUSH));
+
+    for (int i = 0; i < st->zombieCount; ++i) {
+        const Zombie* z = &st->zombies[i];
         if (!z->alive) continue;
 
         int x = (int)z->x;
         int y = (int)z->y;
-        int half = 20; // 네모 반지름
+        int half = 20;     // 박스 반지름
+
+        // 인덱스별로 색 조금씩 바꿔보기 (구분용)
+        SetDCPenColor(hdc, RGB(255, 0, 0));
+        SetDCBrushColor(hdc, RGB(255, 200 - (i * 15) % 150, 200));
 
         Rectangle(hdc, x - half, y - half, x + half, y + half);
     }
+
+    SelectObject(hdc, hOldPen);
+    SelectObject(hdc, hOldBrush);
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -130,7 +155,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        RenderState(hdc);
+
+        // 1) 서버에서 받은 상태를 로컬로 복사
+        GameState local = g_state;   // 스레드 세이프는 아니지만 일단 스냅샷용
+
+        // 2) 그 로컬 상태 기반으로 그리기
+        RenderScene(hdc, &local);
+
         EndPaint(hWnd, &ps);
         return 0;
     }

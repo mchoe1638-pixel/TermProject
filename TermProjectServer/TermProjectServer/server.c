@@ -82,6 +82,7 @@ int main(void)
     }
 
     InitGameState(&g_state);
+    
 
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSock == INVALID_SOCKET) err_quit("socket()");
