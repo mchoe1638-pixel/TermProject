@@ -103,12 +103,24 @@ unsigned __stdcall RecvThreadProc(void* arg)
     return 0;
 }
 
-void RenderStateText(HDC hdc)
+void RenderState(HDC hdc)
 {
+    // 1) 서버 timeSec 텍스트 찍기
     wchar_t buf[128];
     wsprintfW(buf, L"Server timeSec = %d", g_state.timeSec);
-
     TextOutW(hdc, 10, 10, buf, lstrlenW(buf));
+
+    // 2) 좀비들 박스로 그리기
+    for (int i = 0; i < g_state.zombieCount; ++i) {
+        Zombie* z = &g_state.zombies[i];
+        if (!z->alive) continue;
+
+        int x = (int)z->x;
+        int y = (int)z->y;
+        int half = 20; // 네모 반지름
+
+        Rectangle(hdc, x - half, y - half, x + half, y + half);
+    }
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -118,7 +130,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        RenderStateText(hdc);
+        RenderState(hdc);
         EndPaint(hWnd, &ps);
         return 0;
     }
@@ -192,3 +204,4 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     return (int)msg.wParam;
 }
+// 2025/11/15/최명규/LogicTick에서 좀비 움직임-------------------------------------

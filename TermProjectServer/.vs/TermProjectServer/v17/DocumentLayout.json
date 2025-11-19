@@ -38,8 +38,7 @@
               "RelativeToolTip": "TermProjectServer\\game_logic.c",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
-              "WhenOpened": "2025-11-19T10:59:47.735Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T10:59:47.735Z"
             },
             {
               "$type": "Document",
@@ -49,7 +48,7 @@
               "RelativeDocumentMoniker": "TermProjectServer\\game_shared.h",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectServer\\TermProjectServer\\game_shared.h",
               "RelativeToolTip": "TermProjectServer\\game_shared.h",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAACUAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAACwAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-11-19T10:53:32.426Z",
               "EditorCaption": ""
@@ -64,8 +63,7 @@
               "RelativeToolTip": "TermProjectServer\\server.c",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAADoAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
-              "WhenOpened": "2025-11-19T10:37:36.295Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T10:37:36.295Z"
             }
           ]
         }
