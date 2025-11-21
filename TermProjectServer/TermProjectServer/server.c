@@ -14,7 +14,7 @@
 // 전역
 static GameState g_state;
 static int g_running = 1;
-
+CRITICAL_SECTION g_StateCS;   // GameState 보호용 CS
 unsigned __stdcall ClientThreadProc(void* arg);
 
 int PollClientInput(SOCKET s)
@@ -63,7 +63,9 @@ int PollClientInput(SOCKET s)
         }
 
         printf("CL_PLACE_PLANT row=%d col=%d\n", pkt.row, pkt.col);
+        EnterCriticalSection(&g_StateCS); // 보호 범위 시작
         PlacePlant(&g_state, pkt.row, pkt.col, 1); // type=1 기본 plant
+        LeaveCriticalSection(&g_StateCS); // 보호 범위 끝
 
     }
     else {
@@ -122,14 +124,19 @@ unsigned __stdcall ClientThreadProc(void* arg)
             break;
         }
 
-        // 게임 상태 업데이트
-        UpdateGameState(&g_state, dt);
+       // 게임 상태 업데이트 + 전송을 하나의 임계구역으로 묶기
+    EnterCriticalSection(&g_StateCS);
 
-        // 상태 전송
-        if (!SendGameState(cs)) {
-            printf("Client disconnected (send).\n");
-            break;
-        }
+    UpdateGameState(&g_state, dt);
+
+    int sendGameStaetCheck = SendGameState(cs);
+
+    LeaveCriticalSection(&g_StateCS);
+
+    if (!sendGameStaetCheck) {
+        printf("Client disconnected (send).\n");
+        break;
+    }
     }
 
     closesocket(cs);
@@ -145,7 +152,7 @@ int main(void)
     }
 
     InitGameState(&g_state);
-    
+    InitializeCriticalSection(&g_StateCS);   // 추가
 
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSock == INVALID_SOCKET) err_quit("socket()");
@@ -179,6 +186,7 @@ int main(void)
     }
 
     closesocket(listenSock);
+    DeleteCriticalSection(&g_StateCS);       // 추가
     WSACleanup();
     return 0;
 }

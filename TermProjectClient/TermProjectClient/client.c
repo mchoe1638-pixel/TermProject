@@ -18,6 +18,15 @@ SOCKET g_serverSock = INVALID_SOCKET;
 HANDLE g_hRecvThread = NULL;
 volatile int g_netRunning = 0;
 GameState g_state;   // 서버에서 받은 상태
+CRITICAL_SECTION g_StateCS;  // 추가: GameState 보호용
+
+// Rendering에 사용할 Buffer
+typedef struct RenderBuffer {
+    int numZombies;
+    // 좀비, 식물, 투사체 등등 서버 상태를 그리기 좋게 변환한 데이터들
+} RenderBuffer;
+RenderBuffer g_RenderBuffer; // 공유 렌더 버퍼
+CRITICAL_SECTION g_RenderCS; // 이걸로 보호
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 unsigned __stdcall RecvThreadProc(void* arg);
@@ -133,8 +142,11 @@ unsigned __stdcall RecvThreadProc(void* arg)
             continue;
         }
 
+        EnterCriticalSection(&g_StateCS);
         // 그냥 통째로 복사
         g_state = pkt.state;
+        LeaveCriticalSection(&g_StateCS);
+
 
         // 화면 다시 그리기
         if (g_hWnd) {
@@ -263,6 +275,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         // 1) 서버에서 받은 상태를 로컬로 복사
         GameState local = g_state;   // 스레드 세이프는 아니지만 일단 스냅샷용
 
+        // g_state를 읽을 때도 보호
+        EnterCriticalSection(&g_StateCS);
+        local = g_state;          // 스냅샷 복사
+        LeaveCriticalSection(&g_StateCS);
+
         // 2) 그 로컬 상태 기반으로 그리기
         RenderScene(hdc, &local);
 
@@ -298,6 +315,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPWSTR lpCmdLine, int nCmdShow)
 {
+
+
     (void)hPrevInstance;
     (void)lpCmdLine;
 
@@ -333,6 +352,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
 
     g_hWnd = hWnd;
+    // 여기: CS 초기화
+    InitializeCriticalSection(&g_StateCS);
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -349,7 +370,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
-
+    DeleteCriticalSection(&g_StateCS);       // 종료 시 정리
     return (int)msg.wParam;
 }
 // 2025/11/15/최명규/LogicTick에서 좀비 움직임
