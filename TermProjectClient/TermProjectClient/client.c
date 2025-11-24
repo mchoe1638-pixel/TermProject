@@ -110,8 +110,6 @@ int ConnectToServer(const char* ip, unsigned short port)
 
     g_hRecvThread = (HANDLE)_beginthreadex(
         NULL, 0, RecvThreadProc, NULL, 0, NULL);
-    if (g_hRecvThread)
-        CloseHandle(g_hRecvThread);
 
     return 1;
 }
@@ -154,11 +152,6 @@ unsigned __stdcall RecvThreadProc(void* arg)
         }
     }
 
-    if (g_serverSock != INVALID_SOCKET) {
-        closesocket(g_serverSock);
-        g_serverSock = INVALID_SOCKET;
-    }
-    WSACleanup();
     return 0;
 }
 
@@ -300,12 +293,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     }
     case WM_DESTROY:
+        // 1) RecvThread 루프 종료 플래그
         g_netRunning = 0;
+
+        // 2) 소켓 송수신 중단 (recv 깨우기용)
+        if (g_serverSock != INVALID_SOCKET) {
+            shutdown(g_serverSock, SD_BOTH);  // 송수신 다 끊겠다고 서버/로컬에 알림
+        }
+
+        // 3) RecvThread가 끝날 때까지 대기
+        if (g_hRecvThread) {
+            WaitForSingleObject(g_hRecvThread, INFINITE);
+            CloseHandle(g_hRecvThread);
+            g_hRecvThread = NULL;
+        }
+
+        // 4) 이제 진짜 소켓 닫기
         if (g_serverSock != INVALID_SOCKET) {
             closesocket(g_serverSock);
             g_serverSock = INVALID_SOCKET;
         }
+
+        // 5) WSA 정리 (한 번만)
         WSACleanup();
+
         PostQuitMessage(0);
         return 0;
     }

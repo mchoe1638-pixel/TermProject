@@ -36,9 +36,10 @@
               "RelativeDocumentMoniker": "TermProjectClient\\game_logic.c",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_logic.c",
               "RelativeToolTip": "TermProjectClient\\game_logic.c",
-              "ViewState": "AgIAAPUAAAAAAAAAAAAAAP4AAAAtAAAAAAAAAA==",
+              "ViewState": "AgIAAOAAAAAAAAAAAAAkwP4AAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
-              "WhenOpened": "2025-11-19T10:58:10.612Z"
+              "WhenOpened": "2025-11-19T10:58:10.612Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -48,9 +49,10 @@
               "RelativeDocumentMoniker": "TermProjectClient\\game_shared.h",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_shared.h",
               "RelativeToolTip": "TermProjectClient\\game_shared.h",
-              "ViewState": "AgIAAF0AAAAAAAAAAAAAAA4AAAAaAAAAAAAAAA==",
+              "ViewState": "AgIAADAAAAAAAAAAAAAkwDAAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T10:52:59.871Z"
+              "WhenOpened": "2025-11-19T10:52:59.871Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -60,7 +62,7 @@
               "RelativeDocumentMoniker": "TermProjectClient\\client.c",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\client.c",
               "RelativeToolTip": "TermProjectClient\\client.c",
-              "ViewState": "AgIAAPoAAAAAAAAAAAAnwAcBAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAADEBAAAAAAAAAAAiwEABAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
               "WhenOpened": "2025-11-19T10:40:02.065Z",
               "EditorCaption": ""

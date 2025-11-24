@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|solutionrelative:TermProjectClient\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\client.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|solutionrelative:TermProjectClient\\client.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_logic.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|solutionrelative:TermProjectClient\\game_logic.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\client.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|solutionrelative:TermProjectClient\\client.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BF026D4F-1465-4417-9A27-31744319EDA1}|TermProjectClient\\TermProjectClient.vcxproj|solutionrelative:TermProjectClient\\game_shared.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -43,26 +43,26 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "game_shared.h",
               "DocumentMoniker": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_shared.h",
               "RelativeDocumentMoniker": "TermProjectClient\\game_shared.h",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\game_shared.h",
               "RelativeToolTip": "TermProjectClient\\game_shared.h",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAkwDAAAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAADAAAAAAAAAAAAAkwDAAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-11-19T10:52:59.871Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "client.c",
               "DocumentMoniker": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\client.c",
               "RelativeDocumentMoniker": "TermProjectClient\\client.c",
               "ToolTip": "C:\\Users\\chlau\\Desktop\\test\\TermProject\\TermProjectClient\\TermProjectClient\\client.c",
               "RelativeToolTip": "TermProjectClient\\client.c",
-              "ViewState": "AgIAAFoBAAAAAAAAAAAkwHgBAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAADEBAAAAAAAAAAAiwEABAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
               "WhenOpened": "2025-11-19T10:40:02.065Z",
               "EditorCaption": ""
