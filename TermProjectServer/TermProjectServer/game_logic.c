@@ -19,6 +19,14 @@ void InitGameState(GameState* st)
     st->zombieCount = 0;
     st->projectileCount = 0;
 
+    // 웨이브 기본 값
+    st->waveIndex = 0;
+    st->totalWaves = 3;          // 일단 3웨이브 정도로
+    st->maxZombiesThisWave = 10; // 1웨이브 10마리
+    st->spawnedThisWave = 0;
+    st->killedThisWave = 0;
+    st->gameResult = 0;          // 진행중
+
     // plant 초기화
     for (int r = 0; r < MAX_ROWS; ++r) {
         for (int c = 0; c < MAX_COLS; ++c) {
@@ -55,10 +63,14 @@ void PlacePlant(GameState* st, int row, int col, int type)
     p->cooldown = 0.0f;  // 공격 쿨다운은 3단계에서 사용
 }
 
-// 한 마리 추가
+
 static void SpawnZombie(GameState* st)
 {
     if (st->zombieCount >= MAX_ZOMBIES)
+        return;
+
+    // 이번 웨이브에서 더 이상 스폰할 몹이 없으면 리턴
+    if (st->spawnedThisWave >= st->maxZombiesThisWave)
         return;
 
     Zombie* z = &st->zombies[st->zombieCount++];
@@ -67,9 +79,9 @@ static void SpawnZombie(GameState* st)
 
     int row = rand() % MAX_ROWS;
     z->y = (LONG)ROW_CENTER_Y(row);
+    z->x = GRID_ORIGIN_X + MAX_COLS * CELL_WIDTH + CELL_WIDTH;
 
-    z->x = GRID_ORIGIN_X + MAX_COLS * CELL_WIDTH + CELL_WIDTH; // 그리드 오른쪽 바깥
-    z->y = (LONG)ROW_CENTER_Y(row);
+    st->spawnedThisWave++;
 }
 
 // 발사체 추가
@@ -215,6 +227,9 @@ static void UpdateProjectiles(GameState* st, float dt)
                 p->alive = 0;
 
                 if (zb->hp <= 0) {
+                    if (zb->alive) {
+                        st->killedThisWave++;
+                    }
                     zb->alive = 0;
                 }
                 break;
@@ -225,8 +240,14 @@ static void UpdateProjectiles(GameState* st, float dt)
 
 void UpdateGameState(GameState* st, float dt)
 {
-    if (st->gameOver) {
-        // 게임 끝나도 timeSec은 그냥 두고 멈추게 둠
+    // 패배 상태면 더 이상 진행 X
+    if (st->gameOver || st->gameResult == 2) {
+        st->gameResult = 2;
+        return;
+    }
+
+    // 이미 승리했으면 더 이상 진행 X
+    if (st->gameResult == 1) {
         return;
     }
 
@@ -239,17 +260,46 @@ void UpdateGameState(GameState* st, float dt)
         accSec -= 1.0f;
     }
 
-    // 주기적으로 좀비 스폰
+    // --- 웨이브 스폰 ---
     spawnAcc += dt;
-    if (spawnAcc >= 2.0f) {
+    if (spawnAcc >= ZOMBIE_SPAWN_INTERVAL) {
         SpawnZombie(st);
-        spawnAcc -= 2.0f;
+        spawnAcc -= ZOMBIE_SPAWN_INTERVAL;
     }
 
     // 엔티티 업데이트
-    UpdatePlants(st, dt);       // plant → projectile 생성
-    UpdateProjectiles(st, dt);  // projectile 이동 & 좀비와 충돌
-    UpdateZombies(st, dt);      // 좀비 이동 & plant/base와 충돌
+    UpdatePlants(st, dt);
+    UpdateProjectiles(st, dt);
+    UpdateZombies(st, dt);
+
+    // 베이스 도달로 gameOver가 되면 게임 결과 = 패배
+    if (st->gameOver) {
+        st->gameResult = 2; // 패배
+        return;
+    }
+
+    // 현재 살아있는 좀비 수 계산
+    int aliveZombies = 0;
+    for (int i = 0; i < st->zombieCount; ++i) {
+        if (st->zombies[i].alive) aliveZombies++;
+    }
+
+    // 이번 웨이브의 몹을 모두 스폰했고, 모두 죽었으면
+    if (st->spawnedThisWave >= st->maxZombiesThisWave && aliveZombies == 0) {
+        if (st->waveIndex + 1 < st->totalWaves) {
+            // 다음 웨이브로 넘어감
+            st->waveIndex++;
+            st->spawnedThisWave = 0;
+            st->killedThisWave = 0;
+
+            // 웨이브마다 난이도 살짝 올리기 (예: 좀비 수 증가)
+            st->maxZombiesThisWave += 5;
+        }
+        else {
+            // 마지막 웨이브까지 다 클리어 → 승리
+            st->gameResult = 1;
+        }
+    }
 }
 
 // 2025/11/19/최명규/그리드 내 마우스 클릭시 식물 생성, 발사체 발사

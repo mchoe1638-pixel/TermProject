@@ -60,10 +60,19 @@ typedef struct GameState {
 
     int gameOver;   // 0=진행중, 1=패배
 
+    // --- 웨이브/승리 상태 ---
+    int waveIndex;          // 현재 웨이브 (0부터 시작)
+    int totalWaves;         // 전체 웨이브 수
+    int maxZombiesThisWave; // 이번 웨이브에서 스폰할 좀비 총 수
+    int spawnedThisWave;    // 이번 웨이브에서 지금까지 스폰한 수
+    int killedThisWave;     // 이번 웨이브에서 죽인 수
+
+    int gameResult;         // 0=진행중, 1=승리, 2=패배 (클라에서 텍스트 표시용)
+
     Zombie zombies[MAX_ZOMBIES];
     int zombieCount;
 
-    Plant plants[MAX_ROWS][MAX_COLS]; // grid 기반 plant
+    Plant plants[MAX_ROWS][MAX_COLS];
 
     Projectile projectiles[MAX_PROJECTILES];
     int projectileCount;
@@ -90,6 +99,8 @@ typedef struct SV_GAME_STATE {
     PACKET_HEADER header;
     GameState state;
 } SV_GAME_STATE;
+
+
 
 // ===================== 게임 로직 함수 =====================
 
