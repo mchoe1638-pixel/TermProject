@@ -171,25 +171,35 @@ static void UpdatePlants(GameState* st, float dt)
             if (p->cooldown > 0.0f)
                 continue;
 
-            // 같은 row에 살아있는 좀비가 하나라도 있으면 쏜다
+            // 이 plant 위치
+            float px = COL_CENTER_X(c);
+            float py = ROW_CENTER_Y(r);
+
+            // === 여기부터 타겟 탐색 로직 변경 ===
             int hasTarget = 0;
             for (int i = 0; i < st->zombieCount; ++i) {
                 Zombie* z = &st->zombies[i];
                 if (!z->alive) continue;
-                // 행(row) 대충 y 기준으로 판단해도 되지만, 일단 라인 개념 없으니 전체로 쏘자
-                // 나중에 row -> y 매핑해서 같은 줄만 쏘게 바꿀 수 있음
+
+                // 1) 같은 줄인지: y가 비슷한지 확인
+                if (fabsf(z->y - py) > (CELL_HEIGHT * 0.5f))
+                    continue;
+
+                // 2) 내 앞에 있는지: 좀비가 plant보다 오른쪽에 있어야 함
+                if (z->x <= px)
+                    continue;
+
+                // 조건 둘 다 만족하면 쏠 타겟이 있다고 판단
                 hasTarget = 1;
                 break;
             }
 
             if (!hasTarget) {
-                // 타겟 없으면 굳이 안 쏨 (원하면 쏘게 바꿔도 됨)
+                // 내 줄, 내 앞에 좀비가 없으면 안 쏨
                 continue;
             }
 
             // 이 plant의 중앙 위치에서 발사
-            float px = COL_CENTER_X(c);
-            float py = ROW_CENTER_Y(r);
             SpawnProjectile(st, px, py);
 
             // 발사 후 쿨다운 재설정 (0.7초마다 한 발)
