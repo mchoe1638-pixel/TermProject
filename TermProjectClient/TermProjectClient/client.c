@@ -245,11 +245,18 @@ void RenderScene(HDC hdc, const GameState* st)
         Ellipse(hdc, x - 5, y - 5, x + 5, y + 5);
     }
 
-    if (st->gameOver) {
-        SetBkMode(hdc, TRANSPARENT);
-        SetTextColor(hdc, RGB(255, 0, 0));
 
+    // 승리/패배 텍스트
+    SetBkMode(hdc, TRANSPARENT);
+
+    if (st->gameResult == 2) {          // 패배
+        SetTextColor(hdc, RGB(255, 0, 0));
         const wchar_t* msg = L"GAME OVER";
+        TextOutW(hdc, 200, 50, msg, lstrlenW(msg));
+    }
+    else if (st->gameResult == 1) {     // 승리
+        SetTextColor(hdc, RGB(0, 0, 255));
+        const wchar_t* msg = L"YOU WIN!";
         TextOutW(hdc, 200, 50, msg, lstrlenW(msg));
     }
 
