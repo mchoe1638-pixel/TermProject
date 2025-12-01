@@ -104,7 +104,10 @@ int PollClientInput(SOCKET s)
             while (remain > 0) {
                 int chunk = (remain > (int)sizeof(dumpBuf)) ? (int)sizeof(dumpBuf) : remain;
                 ret = recv_all(s, dumpBuf, chunk);
-                if (ret <= 0) return 0;
+                if (ret <= 0) {
+                    printf("client disconnected while dropping unknown body (ret = %d)\n", ret);
+                    return 0;
+                }
                 remain -= ret;
             }
         }
@@ -216,6 +219,18 @@ int main(void)
 
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSock == INVALID_SOCKET) err_quit("socket()");
+
+    // SO_REUSEADDR ¼³Á¤
+    {
+        BOOL optval = TRUE;
+        if (setsockopt(listenSock,
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            (const char*)&optval,
+            sizeof(optval)) == SOCKET_ERROR) {
+            printf("setsockopt(SO_REUSEADDR) failed: %d\n", WSAGetLastError());
+        }
+    }
 
     SOCKADDR_IN serveraddr;
     ZeroMemory(&serveraddr, sizeof(serveraddr));
