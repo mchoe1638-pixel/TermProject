@@ -25,6 +25,28 @@ CRITICAL_SECTION g_StateCS;   // GameState 보호용 CS
 unsigned __stdcall ClientThreadProc(void* arg);
 unsigned __stdcall GameLogicThreadProc(void* arg); // ★ 추가: 게임 로직 전용 스레드
 
+// 정확히 Len 바이트를 받을 때까지 반복
+int recv_all(SOCKET s, char* buf, int len) {
+    int recvd = 0;
+    while (recvd < len) {
+        int ret = recv(s, buf + recvd, len - recvd, 0);
+        if (ret <= 0) return ret;
+        recvd += ret;
+    }
+    return recvd;
+}
+
+int send_all(SOCKET s, const char* buf, int len) {
+    int sent = 0;
+    while (sent < len) {
+        int ret = send(s, buf + sent, len - sent, 0);
+        if (ret <= 0) return ret;
+        sent += ret;
+    }
+    return sent;
+}
+
+
 void err_quit(const char* msg)
 {
     int err = WSAGetLastError();
@@ -39,28 +61,19 @@ int PollClientInput(SOCKET s)
     FD_ZERO(&rfds);
     FD_SET(s, &rfds);
 
-    TIMEVAL tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;   // 논블로킹
-
+    TIMEVAL tv = { 0, 0 }; // 논블로킹
     int r = select(0, &rfds, NULL, NULL, &tv);
     if (r <= 0) {
-        // 읽을 데이터 없음
-        return 1;
+        return 1; // 읽을 거 없음
     }
 
     if (!FD_ISSET(s, &rfds))
         return 1;
 
-    // 헤더 먼저
     PACKET_HEADER hdr;
-    int ret = recv(s, (char*)&hdr, sizeof(hdr), 0);
+    int ret = recv_all(s, (char*)&hdr, sizeof(hdr));
     if (ret <= 0) {
-        // 0 = 정상 종료, <0 = 에러
-        return 0;
-    }
-    if (ret < (int)sizeof(hdr)) {
-        printf("recv header short\n");
+        printf("client disconnected while reading header (ret=%d)\n", ret);
         return 0;
     }
 
@@ -68,47 +81,49 @@ int PollClientInput(SOCKET s)
         CL_PLACE_PLANT pkt;
         pkt.header = hdr;
 
-        int toRecv = sizeof(CL_PLACE_PLANT) - sizeof(PACKET_HEADER);
-        char* p = ((char*)&pkt) + sizeof(PACKET_HEADER);
-        int recvd = 0;
-
-        while (recvd < toRecv) {
-            ret = recv(s, p + recvd, toRecv - recvd, 0);
-            if (ret <= 0) return 0;
-            recvd += ret;
+        int bodySize = sizeof(CL_PLACE_PLANT) - sizeof(PACKET_HEADER);
+        ret = recv_all(s, ((char*)&pkt) + sizeof(PACKET_HEADER), bodySize);
+        if (ret <= 0) {
+            printf("client disconnected while reading place_plant body (ret=%d)\n", ret);
+            return 0;
         }
 
-        printf("CL_PLACE_PLANT row=%d col=%d\n", pkt.row, pkt.col);
+        printf("[RECV] CL_PLACE_PLANT row=%d col=%d\n", pkt.row, pkt.col);
 
-        // ★ 입력은 GameState에 반영해야 하니까 CS 걸고 처리
         EnterCriticalSection(&g_StateCS);
-        PlacePlant(&g_state, pkt.row, pkt.col, 1); // type=1 기본 plant
+        PlacePlant(&g_state, pkt.row, pkt.col, 1);
         LeaveCriticalSection(&g_StateCS);
     }
     else {
-        // 모르는 패킷이면 버림
-        printf("Unknown packet type=%d\n", hdr.Type);
+        printf("[WARN] Unknown packet type=%d, size=%d\n", hdr.Type, hdr.Size);
+
+        // 헤더에 Size가 들어있으니까, 모르는 타입은 body만큼 그냥 버퍼에서 버려도 됨
+        if (hdr.Size > 0) {
+            char dumpBuf[512];
+            int remain = hdr.Size;
+            while (remain > 0) {
+                int chunk = (remain > (int)sizeof(dumpBuf)) ? (int)sizeof(dumpBuf) : remain;
+                ret = recv_all(s, dumpBuf, chunk);
+                if (ret <= 0) return 0;
+                remain -= ret;
+            }
+        }
     }
 
     return 1;
 }
 
-// ★ 변경: 현재 상태 스냅샷을 받아서 보내는 함수로 변경
 int SendGameState(SOCKET s, const GameState* st)
 {
     SV_GAME_STATE pkt;
     pkt.header.Type = PKT_SV_GAME_STATE;
     pkt.header.Size = sizeof(SV_GAME_STATE) - sizeof(PACKET_HEADER);
-    pkt.state = *st;   // 스냅샷 복사
+    pkt.state = *st;
 
-    int toSend = sizeof(pkt);
-    char* buf = (char*)&pkt;
-    int sent = 0;
-
-    while (sent < toSend) {
-        int ret = send(s, buf + sent, toSend - sent, 0);
-        if (ret <= 0) return 0;
-        sent += ret;
+    int ret = send_all(s, (const char*)&pkt, sizeof(pkt));
+    if (ret <= 0) {
+        printf("[ERR] send_all failed (ret=%d)\n", ret);
+        return 0;
     }
     return 1;
 }
