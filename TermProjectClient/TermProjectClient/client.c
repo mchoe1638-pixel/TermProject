@@ -106,7 +106,7 @@ int ConnectToServer(const char* ip, unsigned short port)
     SOCKADDR_IN serveraddr;
     ZeroMemory(&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = inet_addr("192.168.69.37"); // 로컬호스트
+    serveraddr.sin_addr.s_addr = inet_addr("172.30.1.93"); // 로컬호스트
     serveraddr.sin_port = htons(port);
 
     if (connect(g_serverSock, (SOCKADDR*)&serveraddr, sizeof(serveraddr)) == SOCKET_ERROR) {
@@ -537,7 +537,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     UpdateWindow(hWnd);
 
     // 서버 접속 (로컬 127.0.0.1:9000)
-    if (!ConnectToServer("192.168.69.37", 9000)) {
+    if (!ConnectToServer("172.30.1.93", 9000)) {
         MessageBoxW(NULL, L"서버 연결 실패", L"Error", MB_OK);
         // 서버 없어도 그냥 창은 뜨게 두고 싶으면 return 0 빼도 됨
         return 0;

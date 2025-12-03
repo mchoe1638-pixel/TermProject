@@ -25,6 +25,7 @@ CRITICAL_SECTION g_StateCS;   // GameState 보호용 CS
 unsigned __stdcall ClientThreadProc(void* arg);
 unsigned __stdcall GameLogicThreadProc(void* arg); // ★ 추가: 게임 로직 전용 스레드
 
+
 // 정확히 Len 바이트를 받을 때까지 반복
 int recv_all(SOCKET s, char* buf, int len) {
     int recvd = 0;
@@ -171,12 +172,11 @@ unsigned __stdcall GameLogicThreadProc(void* arg)
 unsigned __stdcall ClientThreadProc(void* arg)
 {
     SOCKET cs = (SOCKET)arg;
-    printf("Client connected.\n");
 
     while (g_running) {
         // 1) 클라이언트 입력 처리 (논블로킹)
         if (!PollClientInput(cs)) {
-            printf("Client disconnected (input).\n");
+            printf("Client disconnected (input)\n");
             break;
         }
 
@@ -188,12 +188,11 @@ unsigned __stdcall ClientThreadProc(void* arg)
 
         // 3) 스냅샷 전송
         if (!SendGameState(cs, &snapshot)) {
-            printf("Client disconnected (send).\n");
+            printf("Client disconnected (send)\n");
             break;
         }
 
-        // 너무 자주 보내면 네트워크/CPU 낭비니까 틱레이트에 맞춰서 살짝 쉰다
-        Sleep(1000 / SERVER_TICK_RATE); // 30Hz면 대략 33ms
+        Sleep(1000 / SERVER_TICK_RATE);
     }
 
     closesocket(cs);
@@ -249,17 +248,27 @@ int main(void)
     while (g_running) {
         SOCKADDR_IN clientaddr;
         int addrlen = sizeof(clientaddr);
+
         SOCKET clientSock = accept(listenSock, (SOCKADDR*)&clientaddr, &addrlen);
         if (clientSock == INVALID_SOCKET) {
-            printf("accept() failed.\n");
+            printf("accept() failed: %d\n", WSAGetLastError());
             continue;
         }
 
+        char ip[32];
+        inet_ntop(AF_INET, &clientaddr.sin_addr, ip, sizeof(ip));
+        int port = ntohs(clientaddr.sin_port);
+
+        printf("Client connected. IP : %s,  PORT : %d\n", ip, port);
+        
+
         HANDLE hThread = (HANDLE)_beginthreadex(
             NULL, 0, ClientThreadProc, (void*)clientSock, 0, NULL);
+
         if (hThread)
             CloseHandle(hThread);
     }
+    
 
     closesocket(listenSock);
     DeleteCriticalSection(&g_StateCS);
@@ -269,3 +278,4 @@ int main(void)
 
 // 2025/11/19/최명규/서버-입력 수신 처리 PollClientInput()
 // 2025/11/24/최명규/틱레이트 통합: GameLogicThread 도입, SERVER_TICK_RATE=30Hz
+// 2025/12/03/김용욱/서버 클라이언트 아이피 주소 출력
