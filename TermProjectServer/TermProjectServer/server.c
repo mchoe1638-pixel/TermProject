@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <process.h>
 #include <stdio.h>
+#include <stdlib.h> // malloc, free
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -15,15 +16,21 @@
 // 서버 게임 로직 틱레이트 (Hz)
 #define SERVER_TICK_RATE        30                         // 30Hz
 #define SERVER_TICK_INTERVAL_MS (1000 / SERVER_TICK_RATE)  // 약 33ms
-#define SERVER_MAX_DT_SEC       0.1f                       // 한 번에 최대 0.1초만 진행 (갑자기 멈췄다 돌아올 때 폭주 방지)
+#define SERVER_MAX_DT_SEC       0.1f                       // 한 번에 최대 0.1초만 진행
 
 // 전역
-static GameState g_state;
 static int g_running = 1;
-CRITICAL_SECTION g_StateCS;   // GameState 보호용 CS
 
 unsigned __stdcall ClientThreadProc(void* arg);
-unsigned __stdcall GameLogicThreadProc(void* arg); // ★ 추가: 게임 로직 전용 스레드
+unsigned __stdcall SessionLogicThreadProc(void* arg);
+
+// 클라이언트 세션 구조체
+typedef struct ClientSession {
+    SOCKET sock;              // 이 세션의 클라이언트 소켓
+    GameState state;          // 이 클라 전용 게임 상태
+    CRITICAL_SECTION cs;      // 이 세션 상태 보호용
+    volatile int running;     // 세션 종료 플래그
+} ClientSession;
 
 // 정확히 Len 바이트를 받을 때까지 반복
 int recv_all(SOCKET s, char* buf, int len) {
@@ -46,7 +53,6 @@ int send_all(SOCKET s, const char* buf, int len) {
     return sent;
 }
 
-
 void err_quit(const char* msg)
 {
     int err = WSAGetLastError();
@@ -55,8 +61,10 @@ void err_quit(const char* msg)
 }
 
 // 클라이언트 입력 처리 (논블로킹)
-int PollClientInput(SOCKET s)
+int PollClientInput(ClientSession* sess)
 {
+    SOCKET s = sess->sock;
+
     fd_set rfds;
     FD_ZERO(&rfds);
     FD_SET(s, &rfds);
@@ -88,16 +96,17 @@ int PollClientInput(SOCKET s)
             return 0;
         }
 
-        printf("[RECV] CL_PLACE_PLANT row=%d col=%d\n", pkt.row, pkt.col);
+        printf("[RECV] CL_PLACE_PLANT row=%d col=%d type=%d\n",
+            pkt.row, pkt.col, pkt.type);
 
-        EnterCriticalSection(&g_StateCS);
-        PlacePlant(&g_state, pkt.row, pkt.col, 1);
-        LeaveCriticalSection(&g_StateCS);
+        EnterCriticalSection(&sess->cs);
+        PlacePlant(&sess->state, pkt.row, pkt.col, pkt.type);
+        LeaveCriticalSection(&sess->cs);
     }
     else {
         printf("[WARN] Unknown packet type=%d, size=%d\n", hdr.Type, hdr.Size);
 
-        // 헤더에 Size가 들어있으니까, 모르는 타입은 body만큼 그냥 버퍼에서 버려도 됨
+        // 헤더에 Size가 들어있으니까, 모르는 타입은 body만큼 그냥 버퍼에서 버림
         if (hdr.Size > 0) {
             char dumpBuf[512];
             int remain = hdr.Size;
@@ -131,18 +140,17 @@ int SendGameState(SOCKET s, const GameState* st)
     return 1;
 }
 
-// ★ 추가: 서버 전체 게임 로직을 담당하는 전용 스레드
-unsigned __stdcall GameLogicThreadProc(void* arg)
+// 세션 로직 스레드: 이 세션의 게임 상태를 틱레이트에 맞춰 업데이트
+unsigned __stdcall SessionLogicThreadProc(void* arg)
 {
-    (void)arg;
+    ClientSession* sess = (ClientSession*)arg;
 
     DWORD lastTick = GetTickCount();
 
-    while (g_running) {
+    while (g_running && sess->running) {
         DWORD now = GetTickCount();
         DWORD diff = now - lastTick;
 
-        // 아직 틱 간격이 안 지났으면 조금 더 쉰다
         if (diff < SERVER_TICK_INTERVAL_MS) {
             DWORD sleepMs = SERVER_TICK_INTERVAL_MS - diff;
             if (sleepMs > 1) Sleep(sleepMs);
@@ -151,17 +159,13 @@ unsigned __stdcall GameLogicThreadProc(void* arg)
 
         lastTick = now;
 
-        // ms → 초 단위로 변환
         float dt = diff / 1000.0f;
-
-        // 갑자기 멈췄다 돌아오면 diff가 크게 튈 수 있으니 제한
         if (dt > SERVER_MAX_DT_SEC)
             dt = SERVER_MAX_DT_SEC;
 
-        // ★ 여기서만 GameState를 진행시킨다
-        EnterCriticalSection(&g_StateCS);
-        UpdateGameState(&g_state, dt);
-        LeaveCriticalSection(&g_StateCS);
+        EnterCriticalSection(&sess->cs);
+        UpdateGameState(&sess->state, dt);
+        LeaveCriticalSection(&sess->cs);
     }
 
     return 0;
@@ -170,33 +174,39 @@ unsigned __stdcall GameLogicThreadProc(void* arg)
 // 클라이언트별 스레드: 입력 처리 + 상태 스냅샷 전송만 담당
 unsigned __stdcall ClientThreadProc(void* arg)
 {
-    SOCKET cs = (SOCKET)arg;
-    printf("Client connected.\n");
+    ClientSession* sess = (ClientSession*)arg;
+    SOCKET cs = sess->sock;
 
-    while (g_running) {
-        // 1) 클라이언트 입력 처리 (논블로킹)
-        if (!PollClientInput(cs)) {
+    printf("Client session started.\n");
+
+    while (g_running && sess->running) {
+        // 1) 이 세션의 입력만 처리
+        if (!PollClientInput(sess)) {
             printf("Client disconnected (input).\n");
             break;
         }
 
-        // 2) 현재 GameState 스냅샷 복사
+        // 2) 세션 상태 스냅샷
         GameState snapshot;
-        EnterCriticalSection(&g_StateCS);
-        snapshot = g_state;
-        LeaveCriticalSection(&g_StateCS);
+        EnterCriticalSection(&sess->cs);
+        snapshot = sess->state;
+        LeaveCriticalSection(&sess->cs);
 
-        // 3) 스냅샷 전송
+        // 3) 이 세션의 상태만 전송
         if (!SendGameState(cs, &snapshot)) {
             printf("Client disconnected (send).\n");
             break;
         }
 
-        // 너무 자주 보내면 네트워크/CPU 낭비니까 틱레이트에 맞춰서 살짝 쉰다
-        Sleep(1000 / SERVER_TICK_RATE); // 30Hz면 대략 33ms
+        Sleep(1000 / SERVER_TICK_RATE);
     }
 
+    sess->running = 0;
     closesocket(cs);
+
+    DeleteCriticalSection(&sess->cs);
+    free(sess);
+
     return 0;
 }
 
@@ -207,15 +217,6 @@ int main(void)
         printf("WSAStartup failed.\n");
         return 1;
     }
-
-    InitGameState(&g_state);
-    InitializeCriticalSection(&g_StateCS);
-
-    // ★ 게임 로직 전용 스레드 시작 (서버 전체 틱레이트 컨트롤)
-    HANDLE hLogicThread = (HANDLE)_beginthreadex(
-        NULL, 0, GameLogicThreadProc, NULL, 0, NULL);
-    if (hLogicThread)
-        CloseHandle(hLogicThread);
 
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSock == INVALID_SOCKET) err_quit("socket()");
@@ -255,17 +256,35 @@ int main(void)
             continue;
         }
 
-        HANDLE hThread = (HANDLE)_beginthreadex(
-            NULL, 0, ClientThreadProc, (void*)clientSock, 0, NULL);
-        if (hThread)
-            CloseHandle(hThread);
+        // 세션 객체 동적 생성
+        ClientSession* sess = (ClientSession*)malloc(sizeof(ClientSession));
+        if (!sess) {
+            printf("malloc ClientSession failed\n");
+            closesocket(clientSock);
+            continue;
+        }
+
+        sess->sock = clientSock;
+        sess->running = 1;
+        InitGameState(&sess->state);          // 각자 독립된 게임 시작
+        InitializeCriticalSection(&sess->cs);
+
+        // 세션 로직 스레드
+        HANDLE hLogic = (HANDLE)_beginthreadex(
+            NULL, 0, SessionLogicThreadProc, sess, 0, NULL);
+        if (hLogic) CloseHandle(hLogic);
+
+        // 세션 네트워크 스레드 (입력 + 상태 전송)
+        HANDLE hClient = (HANDLE)_beginthreadex(
+            NULL, 0, ClientThreadProc, sess, 0, NULL);
+        if (hClient) CloseHandle(hClient);
     }
 
     closesocket(listenSock);
-    DeleteCriticalSection(&g_StateCS);
     WSACleanup();
     return 0;
 }
 
 // 2025/11/19/최명규/서버-입력 수신 처리 PollClientInput()
-// 2025/11/24/최명규/틱레이트 통합: GameLogicThread 도입, SERVER_TICK_RATE=30Hz
+// 2025/11/24/최명규/틱레이트 통합: SessionLogicThreadProc 도입, SERVER_TICK_RATE=30Hz
+// 2025/12/03/최명규/식물 타입 전달, 세션별 GameState 난이도 적용
