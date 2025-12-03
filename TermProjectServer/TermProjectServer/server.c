@@ -177,12 +177,18 @@ unsigned __stdcall ClientThreadProc(void* arg)
     ClientSession* sess = (ClientSession*)arg;
     SOCKET cs = sess->sock;
 
-    printf("Client session started.\n");
+    SOCKADDR_IN addr;
+    int len = sizeof(addr);
+    getpeername(cs, (SOCKADDR*)&addr, &len);
+    char ipStr[32];
+    strcpy(ipStr, inet_ntoa(addr.sin_addr));
+
+    printf("[CONNECT] Client session started. IP: %s\n", ipStr);
 
     while (g_running && sess->running) {
         // 1) 이 세션의 입력만 처리
         if (!PollClientInput(sess)) {
-            printf("Client disconnected (input).\n");
+            printf("[DISCONNECT] Client disconnected (input). IP: %s\n", ipStr);
             break;
         }
 
@@ -194,7 +200,8 @@ unsigned __stdcall ClientThreadProc(void* arg)
 
         // 3) 이 세션의 상태만 전송
         if (!SendGameState(cs, &snapshot)) {
-            printf("Client disconnected (send).\n");
+
+            printf("[DISCONNECT] Client disconnected (send). IP: %s\n", ipStr);
             break;
         }
 
@@ -209,6 +216,42 @@ unsigned __stdcall ClientThreadProc(void* arg)
 
     return 0;
 }
+//{
+//    ClientSession* sess = (ClientSession*)arg;
+//    SOCKET cs = sess->sock;
+//
+//    printf("Client session started.\n");
+//
+//    while (g_running && sess->running) {
+//        // 1) 이 세션의 입력만 처리
+//        if (!PollClientInput(sess)) {
+//            printf("Client disconnected (input).\n");
+//            break;
+//        }
+//
+//        // 2) 세션 상태 스냅샷
+//        GameState snapshot;
+//        EnterCriticalSection(&sess->cs);
+//        snapshot = sess->state;
+//        LeaveCriticalSection(&sess->cs);
+//
+//        // 3) 이 세션의 상태만 전송
+//        if (!SendGameState(cs, &snapshot)) {
+//            printf("Client disconnected (send).\n");
+//            break;
+//        }
+//
+//        Sleep(1000 / SERVER_TICK_RATE);
+//    }
+//
+//    sess->running = 0;
+//    closesocket(cs);
+//
+//    DeleteCriticalSection(&sess->cs);
+//    free(sess);
+//
+//    return 0;
+//}
 
 int main(void)
 {
@@ -288,3 +331,4 @@ int main(void)
 // 2025/11/19/최명규/서버-입력 수신 처리 PollClientInput()
 // 2025/11/24/최명규/틱레이트 통합: SessionLogicThreadProc 도입, SERVER_TICK_RATE=30Hz
 // 2025/12/03/최명규/식물 타입 전달, 세션별 GameState 난이도 적용
+// 2025/12/04/김용욱/클라이언트 접속 시 클라이언트 주소 출력 
