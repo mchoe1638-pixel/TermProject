@@ -1,9 +1,1 @@
-﻿  game_logic.c
-  server.c
-C:\Users\chlau\Desktop\test\TermProject\TermProjectServer\TermProjectServer\game_logic.c(155,20): warning C4244: '=': 'float'에서 'LONG'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  코드를 생성하고 있습니다.
-  14 of 20 functions (70.0%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
-  코드를 생성했습니다.
-  TermProjectServer.vcxproj -> C:\Users\chlau\Desktop\test\TermProject\TermProjectServer\x64\Release\TermProjectServer.exe
+﻿  TermProjectServer.vcxproj -> C:\Users\chlau\Desktop\test\TermProject\TermProjectServer\x64\Release\TermProjectServer.exe
